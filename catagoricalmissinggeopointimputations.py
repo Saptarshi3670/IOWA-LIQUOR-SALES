@@ -31,7 +31,7 @@ import reverse_geocoder as rg
 pd.set_option('display.max_columns', 500)
 
 #---------------------------Need to change the api_key------------------------#
-api_key = "GOOGLE_API_KEY"
+api_key = "GOOGLE_API_LEY"
 #---------------------------Need to change the api_key------------------------#
 
 class CountyCityMissingValue:
@@ -67,7 +67,9 @@ class CountyCityMissingValue:
 df = pd.read_csv('/Users/saptarshimaiti/Desktop/Data Preparation And Analysis/Project/Iowa_Liquor_Sales.csv', low_memory = False)
 #***** Number of data points = 17926603 *****#
 
-#report = pp.ProfileReport(data)
+#report = pp.ProfileReport(df)
+
+#report.to_file = ("Report.html")
 
 df['County'] = df['County'].str.upper()
 df['City'] = df['City'].str.upper()
@@ -82,13 +84,32 @@ df['Address'] = df['Address'].str.upper()
 #** Number of data points = 17846801 after dropping 79802 data points **#
 #** Total Missing County = 76803 **# 
 
+
+
+df_null_values = df[df['County'].isnull() & df['Store Location'].isnull() & df['Address'].isnull() & df['City'].isnull() & df['Zip Code'].isnull() & df['County Number'].isnull()][['Store Number', 'Store Name', 'Address', 'City', 'County', 'Store Location']].drop_duplicates()
+
+store_nums = df_null_values['Store Number'].unique()
+
+
+
+for store_num in store_nums:
+    store =  df[(df['Store Number'] == store_num) & df['County'].notnull() & df['Address'].notnull() & df['City'].notnull() & df['Zip Code'].notnull() & df['County Number'].notnull()].groupby(['Store Number'])['Date'].max()
+    try:
+        df.loc[(df['Store Number'] == store_num) & df['County'].isnull() & df['Address'].isnull() & df['City'].isnull() & df['Zip Code'].isnull() & df['County Number'].isnull(), 'County'] = df[(df['Store Number'] == store_num) & (df['Date'] == store[store_num]) & df['County'].notnull() & df['Address'].notnull() & df['City'].notnull() & df['Zip Code'].notnull() & df['County Number'].notnull()]['County'].unique()[0]
+        df.loc[(df['Store Number'] == store_num) & df['Address'].isnull() & df['City'].isnull() & df['Zip Code'].isnull() & df['County Number'].isnull(), 'City'] = df[(df['Store Number'] == store_num) & (df['Date'] == store[store_num]) & df['County'].notnull() & df['Address'].notnull() & df['City'].notnull() & df['Zip Code'].notnull() & df['County Number'].notnull()]['City'].unique()[0]
+        df.loc[(df['Store Number'] == store_num) & df['Address'].isnull() & df['Zip Code'].isnull() & df['County Number'].isnull(), 'Zip Code'] = df[(df['Store Number'] == store_num) & (df['Date'] == store[store_num]) & df['County'].notnull() & df['Address'].notnull() & df['City'].notnull() & df['Zip Code'].notnull() & df['County Number'].notnull()]['Zip Code'].unique()[0]
+        df.loc[(df['Store Number'] == store_num) & df['Address'].isnull() & df['County Number'].isnull(), 'Address'] = df[(df['Store Number'] == store_num) & (df['Date'] == store[store_num]) & df['County'].notnull() & df['Address'].notnull() & df['City'].notnull() & df['Zip Code'].notnull() & df['County Number'].notnull()]['Address'].unique()[0]
+        df.loc[(df['Store Number'] == store_num) & df['County Number'].isnull(), 'County Number'] = df[(df['Store Number'] == store_num) & (df['Date'] == store[store_num]) & df['County'].notnull() & df['Address'].notnull() & df['City'].notnull() & df['Zip Code'].notnull() & df['County Number'].notnull()]['County Number'].unique()[0]
+    except:
+        pass
+
 '''
 ******* RESOLVED MISSING CITIES *******
 '''
 df = df.drop(list(df[df['County'].isnull() & df['Store Location'].isnull() & df['Address'].isnull() & df['City'].isnull() & df['Zip Code'].isnull() & df['County Number'].isnull()].index))
 countyCityImputation = CountyCityMissingValue(df, api_key)
 
-
+df.loc[df['Store Number'] == 5142, 'Address'] = '2315 Mt Vernon Rd Se'
 
 
 
@@ -106,6 +127,10 @@ for longitude_latitude in longitudes_latitudes:
     df.loc[df['Store Location'] == longitude_latitude, 'County'] = re.sub(r' County',"",rg.search((latitude, longitude))[0]['admin2'])
 
 
+
+df['Address'] = df['Address'].str.replace("#","")
+  
+df['Store Name'] = df['Store Name'].str.replace("#", "")  
 '''
 ******* RESOLVED 70447 MISSING CITIES *******
 '''
@@ -121,20 +146,9 @@ df_locations = df[(df['County'].isnull()) & df['Address'].notnull()][['Store Nam
 '''
 #countyCityImputation.extract_lat_long_via_address("STATION MART LIQUOR AND TOBACCO, 3594 LAFAYETTE ST, EVANSDALE, IOWA")
 
-'''"Shop N Save #1 / Mlk Pkwy, 2127 M L KING JR PKWY, DES MOINES, IOWA"'''
-'''"Casey's General Store # 2598/ Pella, 414, CLARK STREET, PELLA, IOWA"'''
-'''"Yesway Store # 10016/ Fort Dodge, 1601 5TH AVE, FORT DODGE, IOWA"'''
 
 for index, row in df_locations.iterrows():
-    if row['Store Name'] not in ['Shop N Save #1 / Mlk Pkwy',"Casey's General Store # 2598/ Pella",'Yesway Store # 10016/ Fort Dodge']:
-          store_location = countyCityImputation.extract_lat_long_via_address(row['Store Name'] + "," + row['Address'] + "," + row['City'] + ", IOWA")
-    else:
-        if (row['Store Name'] == 'Shop N Save #1 / Mlk Pkwy'):
-            store_location = countyCityImputation.extract_lat_long_via_address('Shop N Save 1 / Mlk Pkwy' + "," + row['Address'] + "," + row['City'] + ", IOWA")
-        elif (row['Store Name'] == "Casey's General Store # 2598/ Pella"):
-            store_location = countyCityImputation.extract_lat_long_via_address("Casey's General Store 2598/ Pella" + "," + row['Address'] + "," + row['City'] + ", IOWA")
-        else:
-            store_location = countyCityImputation.extract_lat_long_via_address('Yesway Store 10016/ Fort Dodge' + "," + row['Address'] + "," + row['City'] + ", IOWA")
+    store_location = countyCityImputation.extract_lat_long_via_address(row['Store Name'] + "," + row['Address'] + "," + row['City'] + ", IOWA")
     df.loc[df['County'].isnull() & (df['Store Number'] == row['Store Number']), "Store Location"] = store_location
     longitude, latitude = re.sub(r' ',",",re.sub(r'\)',"",re.sub(r'POINT \(',"", store_location))).split(',')
     df.loc[df['County'].isnull() & (df['Store Number'] == row['Store Number']) & (df['Address'] == row['Address']) & (df['City'] == row['City']), "County"] = re.sub(r' County',"",rg.search((latitude, longitude))[0]['admin2'])
@@ -150,7 +164,7 @@ df_locations = df[(df['Store Location'].isnull()) & df['Address'].notnull()][['S
 ******* RESOLVED 1645567 MISSING STORE LOCATION *******
 '''
 
-df_locations["Store Name"].replace("#","",regex = True, inplace= True)
+df.loc[df['Store Number'] == 5142, 'Store Name'] = "Smokin' Joe's 13 Tobacco and Liquor Outlet"
 
 for index, row in df_locations.iterrows():
     store_location = countyCityImputation.extract_lat_long_via_address(row['Store Name'] + "," + row['Address'] + "," + row['City'] + ", IOWA")
@@ -191,6 +205,11 @@ df['City'] = df['City'].str.title()
 
 longitudes_latitudes = df['Store Location'].unique()
 
+#store_dt_series = df[df['County'].notnull() & df['Store Location'].notnull() & df['Address'].notnull() & df['City'].notnull() & df['Zip Code'].notnull() & df['County Number'].notnull()].groupby(['Store Number'])['Date'].max()
+
+
+#df[df['Store Number'] == 5140 & df['County'].notnull() & df['Store Location'].notnull() & df['Address'].notnull() & df['City'].notnull() & df['Zip Code'].notnull() & df['County Number'].notnull()]
+
 cooridnates = None
 
 for longitude_latitude in longitudes_latitudes:
@@ -202,9 +221,6 @@ for longitude_latitude in longitudes_latitudes:
 **** FIXING INVALID CO-ORDINATES ****
 '''
 
-df[df['City'] == 'Rock Rapids']['Address'].unique()
-df.loc[df['Address'] == '507 1St Ave #100', 'Address'] = '507 Main St 100'
-df.loc[df['Address'] == '4518 Mortonsen Street Suite #109', 'Address'] = '4518 Mortonsen Street Suite 109'        
 df_locations = df[df['Store Location'] == cooridnates][['Store Name', 'Address','City','Store Location']].drop_duplicates()
 
 #JW Liquor, 4518 Mortonsen Street Suite 109, Ames
@@ -239,5 +255,10 @@ for longitude_latitude in longitudes_latitudes:
 print(cooridnates) #Expected None
 
 
-df.to_csv(r'/Users/saptarshimaiti/Desktop/Data Preparation And Analysis/Project/Iowa_Liquor_Sales_Cleaned_v2.csv', index = False, header=True)
+df.to_csv(r'/Users/saptarshimaiti/Desktop/Data Preparation And Analysis/Project/Iowa_Liquor_Sales_Cleaned_v4.csv', index = False, header=True)
+
+
+#df[df['Store Number'] == 5142][['Store Name', 'Store Number', 'Address', 'City', 'County', 'Store Location']].drop_duplicates()
+
+
 gc.collect()

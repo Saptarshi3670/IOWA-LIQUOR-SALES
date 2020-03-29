@@ -22,7 +22,7 @@ import gc
 
 
 
-df = pd.read_csv('/Users/saptarshimaiti/Desktop/Data Preparation And Analysis/Project/Iowa_Liquor_Sales_Cleaned_v2.csv', low_memory = False)
+df = pd.read_csv('/Users/saptarshimaiti/Desktop/Data Preparation And Analysis/Project/Iowa_Liquor_Sales_Cleaned_v4.csv', low_memory = False)
 
 #report = pp.ProfileReport(df)
 
@@ -137,5 +137,5 @@ for coordinate in coordinates:
     county = re.sub(r' County',"",rg.search((latitude, longitude))[0]['admin2'])
     df.loc[(df['County'] != county) & (df['Store Location'] == coordinate), 'County'] = county
     
-df.to_csv(r'/Users/saptarshimaiti/Desktop/Data Preparation And Analysis/Project/Iowa_Liquor_Sales_Cleaned_v3.csv', index = False, header=True)
+df.to_csv(r'/Users/saptarshimaiti/Desktop/Data Preparation And Analysis/Project/Iowa_Liquor_Sales_Cleaned_v5.csv', index = False, header=True)
 gc.collect()
