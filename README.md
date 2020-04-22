@@ -12,8 +12,8 @@ Our models are about making suggestions to The Iowa Alcoholic Beverages Division
 Model No.1: Time series Model
 We aim at making a good Time Series model in order to  forecast category wise Liquor sales. This will help the Iowa state administration to figure out what kind of liquor has more chances to be sold in the coming time. For this purpose we need to estimate and eliminate the trend and seasonal components in the time series data. Find if our series is stationary or non-stationary, and then make a choice of appropriate model.
 
-Model No.2: Apriori Classification
-It will help us find the association between the brands of liquor purchased by liquor stores in each county. We want to find the most common liquor brands mostly bought together at the county level by the stores and help us assess popularity and dependency among these liquor brands.
+Model No.2: Decision Tree
+We aim to make Decision tree to classify and predict if any new product launches in the market does it have potential to be sold in  counties that generate more business for IOWA liquor sales distributors.
 
 Model No.3: Clustering
 We want to make suggestions to the Iowa Alcoholic Beverages Division to build some delivery pads near the areas with high concentration of liquor shops. We will use latitude and longitude of store locations to group all the stores in short distance from each other into a single cluster and identify these localities in each county to suggest nearby locations for delivery pads.
