@@ -72,130 +72,47 @@ print(ind) # Print missing indices.
 #Category_name, Item_description, Bottle_volume. Hence, use these values to 
 #check if any value is present to corresponding to this data and use for imputation
 
-tmp1 <- df1 %>%                                             
-  filter(Store.Name == "Hy-Vee #3 Food and Drugstore" &      
-           County == "Scott" &                              
-           Category.Name == "Imported Vodka - Misc" &
-           Item.Description == "Pearl Wedding Cake Vodka Mini" &
-           Bottle.Volume..ml. == "500") 
+imputation <- function(store_name, county, category_name, item_description, bottle_vol){
+                        filter_data <- df1 %>%
+                                        filter(Store.Name ==  store_name& 
+                                        County ==  county &
+                                        Category.Name == category_name &
+                                        Item.Description ==  item_description &
+                                        Bottle.Volume..ml. == bottle_vol) 
 
-print(c(tmp1$State.Bottle.Cost[1], tmp1$State.Bottle.Retail[1]))
-#5.0 7.5
+              print(c(filter_data$State.Bottle.Cost, filter_data$State.Bottle.Retail))
+}
 
+imputation("Central City Liquor, Inc.", "Polk", "Vodka 80 Proof", "Titos Handmade Mini", "600")
 df1$State.Bottle.Cost[13789647] <- 5.0
 df1$State.Bottle.Retail[13789647] <- 7.5 
 
-tmp2 <- df1 %>%
-  filter(Store.Name == "Hy-Vee Food Store / Carroll" & 
-           County == "Carroll" &
-           Category.Name == "Imported Vodka - Misc" &
-           Item.Description == "Pearl Wedding Cake Vodka Mini" &
-           Bottle.Volume..ml. == "500") 
 
-print(c(tmp2$State.Bottle.Cost[1], tmp2$State.Bottle.Retail[1]))
-#5.0 7.5
-
+imputation("Hy-Vee Food Store / Carroll" , "Carroll" , "Imported Vodka - Misc" , 
+           "Pearl Wedding Cake Vodka Mini" , "500")
 df1$State.Bottle.Cost[13789898] <- 5.0
 df1$State.Bottle.Retail[13789898] <- 7.5 
 
-tmp3 <- df1 %>%
-  filter(Store.Name == "Hy-Vee Food Store / Indianola" & 
-           County == "Warren" &
-           Category.Name == "Imported Vodka - Misc" &
-           Item.Description == "Pearl Wedding Cake Vodka Mini" &
-           Bottle.Volume..ml. == "500") 
-
-print(c(tmp3$State.Bottle.Cost[1], tmp3$State.Bottle.Retail[1]))
-# 5.0 7.5
-
+imputation("Hy-Vee Food Store / Indianola"  , "Warren" , "Imported Vodka - Misc" , 
+           "Pearl Wedding Cake Vodka Mini" , "500")
 df1$State.Bottle.Cost[13789956] <- 5.0
 df1$State.Bottle.Retail[13789956] <- 7.5 
 
-tmp4 <- df1 %>%
-  filter(Store.Name == "Mac's Liquor And Videos" & 
-           County == "Wayne" &
-           Category.Name == "Vodka 80 Proof" &
-           Item.Description == "Titos Handmade Mini" &
-           Bottle.Volume..ml. == "600") 
-
-print(c(tmp4$State.Bottle.Cost, tmp4$State.Bottle.Retail))
-#NA NA
-#ind = 16950242
-
-tmp5 <- df1 %>%
-  filter(Store.Name == "Hy-Vee Food Store #2 / Council Bluff" & 
-           County == "Pottawattamie" &
-           Category.Name == "Vodka 80 Proof" &
-           Item.Description == "Titos Handmade Mini" &
-           Bottle.Volume..ml. == "600") 
-
-
-print(c(tmp5$State.Bottle.Cost[1], tmp5$State.Bottle.Retail[1]))
-#NA NA
-#ind = 16951315
-
-tmp6 <- df1 %>%
-  filter(Store.Name == "Hy-Vee Food Store #4 / Sioux City" & 
-           County == "Woodbury" &
-           Category.Name == "Vodka 80 Proof" &
-           Item.Description == "Titos Handmade Mini" &
-           Bottle.Volume..ml. == "600") 
-
-print(c(tmp6$State.Bottle.Cost[1], tmp6$State.Bottle.Retail[1]))
-#NA NA
-#ind = 16951364 
-
-
-tmp7 <- df1 %>%
-  filter(Store.Name == "A J'S LIQUOR II" & 
-           County == "Story" &
-           Category.Name == "Vodka 80 Proof" &
-           Item.Description == "Titos Handmade Mini" &
-           Bottle.Volume..ml. == "600") 
-
-print(c(tmp7$State.Bottle.Cost[1], tmp7$State.Bottle.Retail[1]))
-#12.8 19.2 
-
+imputation("A J'S LIQUOR II" , "Story" , "Vodka 80 Proof"  , 
+           "Titos Handmade Mini"  , "600")
 df1$State.Bottle.Cost[16952608] <- 12.8
 df1$State.Bottle.Retail[16952608] <- 19.2 
 
-tmp8 <- df1 %>%
-  filter(Store.Name == "Hy-Vee Food and Drug / Clinton" & 
-           County == "Clinton" &
-           Category.Name == "Vodka 80 Proof" &
-           Item.Description == "Titos Handmade Mini" &
-           Bottle.Volume..ml. == "600") 
-
-print(c(tmp8$State.Bottle.Cost[1], tmp8$State.Bottle.Retail[1]))
-#NA NA
-#ind <- 16955950
-
-
-tmp9 <- df1 %>%
-  filter(Store.Name == "Central City Liquor, Inc." & 
-           County == "Polk" &
-           Category.Name == "Vodka 80 Proof" &
-           Item.Description == "Titos Handmade Mini" &
-           Bottle.Volume..ml. == "600") 
-
-print(c(tmp9$State.Bottle.Cost[1], tmp9$State.Bottle.Retail[1]))
-#12.8 19.2
-
+imputation("Central City Liquor, Inc."  , "Polk"  , "Vodka 80 Proof"  , 
+           "Titos Handmade Mini"  , "600")
 df1$State.Bottle.Cost[16957284] <- 12.8
 df1$State.Bottle.Retail[16957284] <- 19.2 
 
-tmp10 <- df1 %>%
-  filter(Store.Name == "Hy-Vee #3 Food and Drugstore" & 
-           County == "Scott" &
-           Category.Name == "Vodka 80 Proof" &
-           Item.Description == "Titos Handmade Mini" &
-           Bottle.Volume..ml. == "600") 
-
-print(c(tmp10$State.Bottle.Cost[1], tmp10$State.Bottle.Retail[1]))
-#12.8 19.2
-
+imputation("Hy-Vee #3 Food and Drugstore" , "Scott" , "Vodka 80 Proof"  , 
+           "Titos Handmade Mini"  , "600")
 df1$State.Bottle.Cost[16957790] <- 12.8
 df1$State.Bottle.Retail[16957790] <- 19.2
+
 
 #---------------------------------------------------------------------------------------------------------------------------------#
 
@@ -222,7 +139,6 @@ for (r in remaining_ind){
   df1$State.Bottle.Cost[r] <- Bottle_cst
   df1$State.Bottle.Retail[r] <- Bottle_retail
 } 
-
 
 #Recheck the data 
 summary(df1$State.Bottle.Cost)
