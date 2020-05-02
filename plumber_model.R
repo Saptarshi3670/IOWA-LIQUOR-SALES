@@ -33,6 +33,7 @@ if (length(new.packages)) {
   install.packages(new.packages())
 }
 
+#Load the saved model from the local machine
 path <- "C:/Users/kinja/OneDrive/Desktop/All/2. SEM2/DPA/Descision_Tree/DecisionTree/DecisionTree_Plumber/decisiontree.rdata"
 model1 <- load(path) 
 
