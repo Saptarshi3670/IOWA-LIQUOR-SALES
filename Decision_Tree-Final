@@ -1,19 +1,44 @@
+#Install and import all the neccessary packages for EDA of the decision tree.
+install.packages("dplyr")
+install.packages("tidyverse")
+install.packages("caret")
+install.packages("rpart")
+install.packages("rpart.plot")
+install.packages("pROC")
+library(dplyr)
 library(tidyverse)
+library('caret')
+library(rpart)
+library(rpart.plot)
+library("pROC")
 
+#Load the dataset from the local machine and store in a dataframe.
 original_file <- 'C:/Users/kinja/OneDrive/Desktop/All/2. SEM2/DPA/Project/Final_datasets/IOWA_LIQUOR_CATOR_CLEANED_MERGED_DATA.csv'
 original_df <- read.csv(original_file) 
 
+#Duplicate the original data for future use.
 df1 <- original_df
 
+*-------------------------------------------------------------------------------------------------------------------------------*
+
+EDA Step 1:
 #Data correction:
 names(df1)[names(df1) == "AchoholTypes"] <- "AlchoholTypes"
 df1[str_detect(df1$`Item Description`, 'Root Beer'),'AchoholTypes'] <- 'Schnapps'
 df1[str_detect(df1$`Item Description`, 'Rootbeer'),'AchoholTypes'] <- 'Schnapps'
 df1[str_detect(df1$`Item Description`, 'Vodka'),'AlchoholTypes'] <- 'Vodka' 
 
-ind <- which(is.na(df1$Sale..Dollars.))
-datalist = list()
+*-------------------------------------------------------------------------------------------------------------------------------*
 
+#EDA Step 2 - Missing values imputation
+#Methodology: 
+#1)Look for indices of the missing data.
+#2) Bind the missing data in a dataframe.
+#3) Imputate the missing values by finding similar patterns in rest of the data set
+
+ind <- which(is.na(df1$Sale..Dollars.)) #Indices of the missing data.
+
+datalist = list() # Create a dataframe of missing values for further use.
 for (i in 1:length(ind)) {
   x <- c(as.character(df1$Store.Name[ind[i]]), 
          as.character(df1$County[ind[i]]), 
@@ -28,9 +53,7 @@ for (i in 1:length(ind)) {
          df1$Sale..Dollars.[ind[i]])
   datalist[[i]] <- x # add it to your list
 }
-
 big_data = do.call(rbind, datalist) 
-
 
 colnames(big_data) <- c("Store.Name", "County", "Category.Name", "Item.Description", "Pack", "Bottle.Volume..ml.",
                         "Bottles.Sold", "Volume.Sold..Litres.", "State.Bottle.Cost",
@@ -40,16 +63,18 @@ cols <- c("Pack", "Bottle.Volume..ml.",
           "Bottles.Sold", "Volume.Sold..Litres.", "State.Bottle.Cost",
           "State.Bottle.Retail", "Sale..Dollars.") 
 
-temp <- df1 %>%
+temp <- df1 %>%  #Duplicate the datasets for further use
   select(cols)
 
-summary(df1$Bottles.Sold)
+print(ind) # Print missing indices.
 
-print(ind)
+#The missing values are maily dependent in the columns Store name, County,
+#Category_name, Item_description, Bottle_volume. Hence, use these values to 
+#check if any value is present to corresponding to this data and use for imputation
 
-tmp1 <- df1 %>%
-  filter(Store.Name == "Hy-Vee #3 Food and Drugstore" & 
-           County == "Scott" &
+tmp1 <- df1 %>%                                             
+  filter(Store.Name == "Hy-Vee #3 Food and Drugstore" &      
+           County == "Scott" &                              
            Category.Name == "Imported Vodka - Misc" &
            Item.Description == "Pearl Wedding Cake Vodka Mini" &
            Bottle.Volume..ml. == "500") 
@@ -172,15 +197,9 @@ print(c(tmp10$State.Bottle.Cost[1], tmp10$State.Bottle.Retail[1]))
 df1$State.Bottle.Cost[16957790] <- 12.8
 df1$State.Bottle.Retail[16957790] <- 19.2
 
-################################################################################################################
-#Values completely missing at Random.
+#---------------------------------------------------------------------------------------------------------------------------------#
 
-#install.packages("dplyr")
-library(dplyr)
-library(tidyverse)
-
-#stats::
-
+#Values completely missing at Random. Use mode propery on rest of the dataset.
 missing_2 <- df1 %>%
   filter( Category.Name == "Vodka 80 Proof" &
             Item.Description == "Titos Handmade Mini" &
@@ -193,34 +212,32 @@ Bottle_cst <- as.numeric(names(sort(table(missing_2$State.Bottle.Cost)))[last_el
 
 table(missing_2$State.Bottle.Retail)
 
-
 last_element1 <- length(names(sort(table(missing_2$State.Bottle.Retail))))
 Bottle_retail <- as.numeric(names(sort(table(missing_2$State.Bottle.Retail)))[last_element1])
 
+#Fill in the values in missing indices.
 remaining_ind <- c(16950242, 16951315, 16951364, 16955950)
-
 for (r in remaining_ind){
   
   df1$State.Bottle.Cost[r] <- Bottle_cst
   df1$State.Bottle.Retail[r] <- Bottle_retail
 } 
 
-##################################################################################################
+
 #Recheck the data 
 summary(df1$State.Bottle.Cost)
 summary(df1$State.Bottle.Retail)
 
-#Imputing the missing values
+#Imputing the missing values for Sale.Dollars column
 for (i in ind){
   df1$Sale..Dollars.[i] <- df1$Bottles.Sold[i] * df1$State.Bottle.Retail[i]
 }
 
 summary(df1$Sale..Dollars.)
 
-
-##################################################################################################
+#---------------------------------------------------------------------------------------------------------------------------------#
 #Before Feature Scaling:
-#"Bottle.Volume..ml.", "State.Bottle.Cost", "Bottles.Sold"
+#Plots and histograms to see the nature of the data.
 
 hist(df1$Bottle.Volume..ml.,
      main="Histogram of Volume Sold", 
@@ -235,27 +252,26 @@ hist(df1$State.Bottle.Cost)
 hist(df1$Bottles.Sold)
 #Bottles. Sold is right skewed
 
-
-#Use df from here:
+#Use log tranformation to remove skewness from the data.
 df1$log_Bottle_vol <- log(df1$Bottle.Volume..ml.)
 df1$log_State.Bottle.Cost <- log(df1$State.Bottle.Cost)
 df1$log_Bottles.SOld <- log(df1$Bottles.Sold)
 df <- df1
 
-
-#Hence use log transformations:
+#Check histograms to see log transformed data.
 hist(log(df1$Bottle.Volume..ml.+1),
      main="Histogram of Volume Sold", 
      xlab="Volume sold in litres", 
      border="blue", 
      col="green")
-
+#--------------------------------------------------------------------------------------------------------------------------------#
+#Subsetting meaningfull data for further use.
 df$Date <- as.Date(df$Date, "%m/%d/%Y") 
-
 df <- df %>%
   filter(df$Date >= "2017-01-01")
 
-#******************************************************************************************************#
+#--------------------------------------------------------------------------------------------------------------------------------#
+#Analyse county wise sales.
 df_counties <- df %>%
   group_by(County) %>%
   summarise(sales_sum = sum(Sale..Dollars.)) %>%
@@ -267,13 +283,11 @@ mean(df_counties$sales_sum)
 #50% of total sales contributed by 5 counties
 max_contribution <- sum(df_counties$sales_sum[1:5])/sum(df_counties$sales_sum)
 max_contribution*100
-#****************************************************************************************************#
+
 #Potential Counties whose sales are above average can be targeted
 filtered_df_counties <- filter(df_counties, sales_sum > mean(sales_sum))
-
 filtered_df_counties$percent_Sale <- filtered_df_counties$sales_sum/sum(df$Sale..Dollars.)
 
-#****************************************************************************************************#
 ggplot(filtered_df_counties, aes(x = reorder(County,sales_sum) , y = sales_sum/1000000)) +
   geom_bar(fill = "#00AFBB", stat = "identity") +
   theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5))+
@@ -283,7 +297,8 @@ ggplot(filtered_df_counties, aes(x = reorder(County,sales_sum) , y = sales_sum/1
 
 targeted_counties <- filtered_df_counties$County
 
-#**************************************************************************************************#
+#--------------------------------------------------------------------------------------------------------------------------------#
+#Feature engineering:
 #Creating labels:
 
 df_new <- df %>%
@@ -308,7 +323,8 @@ popular1 <- dummy$combo
 
 df_new$label <- ifelse(df_new$combo %in% popular1, 'y', 'n')
 df_new$label <- as.factor(df_new$label) 
-##################################################################################################
+
+#--------------------------------------------------------------------------------------------------------------------------------#
 #Feature Selection using Caret Library and Correlation plot.
 library('caret')
 library('rpart')
@@ -358,16 +374,19 @@ print(highlyCorrelated)
 final_numVar2 <- c("Bottle.Volume..ml.", "State.Bottle.Cost", "Bottles.Sold")
 
 
-#***********************************************************************************************#
+#--------------------------------------------------------------------------------------------------------------------------------#
+
+#MODEL 1
+#Decision tree for entire dataset inclusive of all the counties.
+
 #Divide data in train and test:
 library('caret')
+library(rpart)
 ind <- createDataPartition(y = df_new[ ,"label"], list = FALSE, p = .8)
 train <- df_new[ind, ]
 test <- df_new[-ind,]
 stopifnot(nrow(train) + nrow(test) == nrow(df_new))
 
-#***********************************************************************************************#
-library(rpart)
 mod <- rpart(label ~ log_State.Bottle.Cost +log_Bottles.SOld + log_Bottle_vol,
                   data= train,
                   method="class",
@@ -381,16 +400,15 @@ pred_new <- test$pred
 Actual <- as.factor(test$label)
 conf <- confusionMatrix(reference = Actual, data = pred_new, positive='y') 
 
-#ROC and Precision-Recall curve !!!!!!!!!!!!!!!CHANGE!!!!!!!!!!!!!!!
+#ROC and Precision-Recall curve 
 install.packages("precrec")
 library(precrec)
 precrec_obj <- evalmod(scores = test$pred_prob, labels = test$label)
 autoplot(precrec_obj)
 
-#***********************************************************************************************#
+#--------------------------------------------------------------------------------------------------------------------------------#
 #Subsets for testing:
 parameters_list = list()
-
 
 for(t in 1:length(targeted_counties)){
   df_linn <- filter(df_new, County == targeted_counties[t])
@@ -407,7 +425,7 @@ all_parameters = do.call(rbind, parameters_list)
 
 all_parameters$County = targeted_counties
 
-#******************************************************************************************#
+#--------------------------------------------------------------------------------------------------------------------------------#
 
 #MODEL2 : 15 COUNTY WISE MODELS:
 #Divide data in train and test:
@@ -457,6 +475,7 @@ county_models <- function(county_name){
   return(conf$byClass)
 }
 
+#Iteratively create models for top 5 Counties
 targeted_counties <- c("Polk", "Linn", "Scott","Johnson","Black Hawk")
 
 for(t in 1:length(targeted_counties)){
@@ -466,10 +485,10 @@ for(t in 1:length(targeted_counties)){
 # add it to your list
 top_parameters = do.call(rbind, top_alcohol) 
 
+#--------------------------------------------------------------------------------------------------------------------------------#
+#Model 3 : Only for Polk county. Save this model for Data Deployment through plumber library
 
-#***************************************************************************************************************#
 dummy_df <- filter(df_new, County == "Polk")
-
 #Label the dataset as per top 10 percentile sales of Alcohol_Vendor combination:
 
 main_df <- dummy_df %>%
@@ -508,13 +527,13 @@ Actual <- as.factor(test$label)
 conf <- confusionMatrix(reference = Actual, data = pred_new, positive='y') 
 conf$byClass
 
-
-library(rpart.plot)
+#Plot the decision tree:
 rpart.plot(model, extra = 106)
 
-#install.packages("ROCR")
-#library("ROCR")
+#plot the roc curve.
+roc(test$label~test$pred_prob, plot = TRUE, print.auc = TRUE)
 
-#install.packages("pROC")
-#roc(test$label~test$pred_prob, plot = TRUE, print.auc = TRUE)
+#Save the model:
+model_path <- "C:/Users/kinja/OneDrive/Desktop/All/2. SEM2/DPA/Descision_Tree/DecisionTree/DecisionTree_Plumber"
+save(model, file = paste(model_path, "/decisiontree.rdata", sep=""))
 
