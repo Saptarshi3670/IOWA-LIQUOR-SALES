@@ -12,8 +12,7 @@ if (length(new.packages)) {
 
 library(plumber)
 
-#C:\Users\kinja\OneDrive\Desktop\All\2. SEM2\DPA\Descision_Tree\DecisionTree\DecisionTree_Plumber
-
+#Call the Plumber file in which the model takes input parameters and gives the desired output.
 models_path <- "C:/Users/kinja/OneDrive/Desktop/All/2. SEM2/DPA/Descision_Tree/DecisionTree/DecisionTree_Plumber"
 print(models_path)
 
