@@ -3,7 +3,7 @@ This repo contains .R and .py files for the project Iowa Liquor Sales.
 Overview
 The Iowa Alcoholic Beverages Division is the alcoholic beverage control authority for the U.S. state of Iowa. This division regulates the alcohol traffic and has a monopoly on the wholesaling of alcoholic beverages in the state.
 Our models are about making suggestions to The Iowa Alcoholic Beverages Division regarding reducing inventory costs and give insights into sale patterns of Alcohol at each county in Iowa. We intend to deliver the following objectives:
-1. 	Predict the sale of liquor volume
+1. 	Predict monthly liquor sales
 2. 	Identify the top liquor brands sold and assess their popularity
 3. 	Make suggestions for locations of delivery pads to reduce inventory costs.
 4. 	Investigate sale trends based on public events and holidays in IOWA
